@@ -13,5 +13,6 @@
         "psr-4": {
             "Lwf\\": ""
         }
-    }
+    },
+    "minimum-stability": "dev"
 }
