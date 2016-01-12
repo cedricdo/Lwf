@@ -28,7 +28,7 @@ class FormValidator extends Validator
      */
     public function __construct(array $required = [], array $optional = [], array $rules = [])
     {
-        $this->fields = array();
+        $this->fields = [];
 
         if ($required) {
             $this->fields += array_combine(
@@ -72,7 +72,7 @@ class FormValidator extends Validator
      */
     public function addRule(Validator $validator, array $fields)
     {
-        $rule = array($validator, $fields);
+        $rule = [$validator, $fields];
         if (!array_search($rule, $this->rules)) {
             $this->rules[] = $rule;
         }
@@ -104,6 +104,7 @@ class FormValidator extends Validator
         }
 
         foreach ($this->rules as $rule) {
+            /** @var Validator $validator */
             list($validator, $fields) = $rule;
             foreach ($fields as $key => $field) {
                 if (!is_array($field)) {
