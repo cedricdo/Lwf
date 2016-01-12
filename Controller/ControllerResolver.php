@@ -93,7 +93,6 @@ class ControllerResolver
                         case 'string':
                             $value = (string)$attributes[$param->getName()];
                             break;
-                        default:
                     }
                 }
                 $parameters[] = $value;
