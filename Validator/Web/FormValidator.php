@@ -132,16 +132,19 @@ class FormValidator extends Validator
     /**
      * Check if the confirm field are correct
      *
+     * @param array $skip  The field which can be skipped because they're required but not provided
      * @param array $value The values to test
      */
-    private function checkConfirm(array $value)
+    private function checkConfirm(array $skip, array $value)
     {
         foreach ($this->confirms as $fieldName => $confirmFieldName) {
             if (empty($confirmFieldName)) {
                 $confirmFieldName = $fieldName . '_confirm';
             }
             if (!isset($value[$confirmFieldName]) || $value[$fieldName] != $value[$confirmFieldName]) {
-                $this->errors[$fieldName][] = 'ConfirmValidator';
+                if (!isset($skip[$fieldName])) {
+                    $this->errors[$fieldName][] = 'ConfirmValidator';
+                }
             }
         }
     }
@@ -189,7 +192,7 @@ class FormValidator extends Validator
     protected function rawCheck($value)
     {
         $skip = $this->checkRequired($value);
-        $this->checkConfirm($value);
+        $this->checkConfirm($skip, $value);
         $this->checkValidators($skip, $value);
     }
 }
