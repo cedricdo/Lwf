@@ -62,8 +62,12 @@ class Encryption
      *
      * @throws RuntimeException If the decryption fails
      */
-    public function decrypt(string $data, string $key)
+    public function decrypt(string $data, string $key): string
     {
+        if (strlen($data) < 128) {
+            throw new RuntimeException("incorrect data size");
+        }
+
         $salt = substr($data, 0, 128);
         $enc = substr($data, 128, -64);
         $mac = substr($data, -64);
@@ -71,10 +75,15 @@ class Encryption
         list ($cipherKey, $macKey, $iv) = $this->getKeys($salt, $key);
 
         if (!hash_equals(hash_hmac('sha512', $enc, $macKey, true), $mac)) {
-             return false;
+             throw new RuntimeException("hash comparison failed");
         }
 
-        return $this->unpad(mcrypt_decrypt($this->cipher, $cipherKey, $enc, $this->mode, $iv));
+        $decrypt = mcrypt_decrypt($this->cipher, $cipherKey, $enc, $this->mode, $iv);
+        if (false == $decrypt) {
+            throw new RuntimeException("decrypt failed");
+        }
+
+        return $this->unpad($decrypt);
     }
 
     /**
@@ -135,7 +144,7 @@ class Encryption
      *
      * @returns string The derived key.
      */
-    protected function pbkdf2(string $algo, string $key, string $salt, int $rounds, int $length)
+    protected function pbkdf2(string $algo, string $key, string $salt, int $rounds, int $length): string
     {
         $size   = strlen(hash($algo, '', true));
         $len    = ceil($length / $size);
@@ -153,7 +162,7 @@ class Encryption
         return substr($result, 0, $length);
     }
 
-    protected function pad($data)
+    protected function pad(string $data): string
     {
         $length = mcrypt_get_block_size($this->cipher, $this->mode);
         $padAmount = $length - strlen($data) % $length;
@@ -164,7 +173,7 @@ class Encryption
         return $data . str_repeat(chr($padAmount), $padAmount);
     }
 
-    protected function unpad($data)
+    protected function unpad(string $data): string
     {
         $length = mcrypt_get_block_size($this->cipher, $this->mode);
         $last = ord($data[strlen($data) - 1]);
