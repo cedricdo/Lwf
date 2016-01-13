@@ -16,6 +16,7 @@ use Lwf\Http\Exception\MethodNotAllowedHttpException;
 use Lwf\Http\Exception\AccessDeniedHttpException;
 use Lwf\Http\Exception\NotFoundHttpException;
 use Lwf\Http\Exception\HttpException;
+use Lwf\Config\Config;
 
 /**
  * Represent the Kernel of an HTTP application
@@ -59,9 +60,13 @@ class Kernel
         $this->publicDir = rtrim($publicDir, '/') . '/';
 
         // We load the configuration provided
-        $conf = require $this->confDir . 'config.php';
+        $conf = (function (Kernel $kernel) {
+            return require $kernel->getConfDir() . 'config.php';
+        })($this);
         // We add the services
-        $this->addServices(require $this->confDir . 'services.php');
+        $this->addServices((function (Kernel $kernel, Config $conf) {
+            return require $kernel->getConfDir() . 'services.php';
+        })($this, clone $conf));
         /** @var \Lwf\Config\Config $config */
         $config = $this->getService('config');
         $config->merge($conf);
@@ -82,7 +87,9 @@ class Kernel
         // Finally let's add the routes
         /** @var \Lwf\Routing\Router $router */
         $router = $this->getService('routing.router');
-        $router->addRoutes(require $this->confDir . 'routes.php');
+        $router->addRoutes((function (Kernel $kernel, Config $conf) {
+            return require $kernel->getConfDir() . 'routes.php';
+        })($this, clone $config));
     }
 
     /**
@@ -169,10 +176,10 @@ class Kernel
     {
         return isset($this->loadedServices[$name]) || isset($this->unloadedServices[$name]);
     }
-    
+
     /**
      * Get a service
-     * 
+     *
      * @param string $name The name of the service
      *
      * @return mixed
@@ -185,14 +192,14 @@ class Kernel
         {
             return $this->loadedServices[$name];
         }
-        
+
         if(isset($this->unloadedServices[$name]))
         {
             $this->loadedServices[$name] = $this->unloadedServices[$name]($this);
             unset($this->unloadedServices[$name]);
             return $this->loadedServices[$name];
         }
-        
+
         throw new OutOfBoundsException(sprintf("Service %s not found", $name));
     }
 
@@ -211,10 +218,10 @@ class Kernel
         }
         $this->unloadedServices[$name] = $loader;
     }
-    
+
     /**
      * Add many services
-     * 
+     *
      * @param array $services
      */
     public function addServices(array $services)
@@ -224,10 +231,10 @@ class Kernel
             $this->addService($name, $service);
         }
     }
-    
+
     /**
      * Remove a service
-     * 
+     *
      * @param string $name The name of the service
      *
      * @throws OutOfBoundsException If the service is not defined
@@ -240,7 +247,7 @@ class Kernel
         unset($this->unloadedServices[$name]);
         unset($this->loadedServices[$name]);
     }
-    
+
     /**
      * Remove every services
      */
@@ -249,7 +256,7 @@ class Kernel
         $this->unloadedServices = [];
         $this->loadedServices = [];
     }
-    
+
     /**
      * Handle a request and return the according Response
      *
