@@ -18,15 +18,18 @@ class FormValidator extends Validator
     private $rules;
     /** @var array */
     private $fields;
+    /** @var array */
+    private $confirms;
     
     /**
      * Constructor
      * 
      * @param array $required The mandatory fields of the form
      * @param array $optional The optionals fields of the form
+     * @param array $confirm  A set of field which have to be confirmed by other fields
      * @param array $rules    The rules wich will be used to validate the form
      */
-    public function __construct(array $required = [], array $optional = [], array $rules = [])
+    public function __construct(array $required = [], array $optional = [], array $confirm = [], array $rules = [])
     {
         $this->fields = [];
 
@@ -40,8 +43,24 @@ class FormValidator extends Validator
                 $optional, array_fill(0, count($optional), false)
             );
         }
-        
+
+        $this->confirms = $confirm;
         $this->rules = $rules;
+    }
+
+    /**
+     * Add a field which has to be confirmed
+     *
+     * The confirmation will be validated if another field with the same value exist
+     * By default, the name of the confirmation field is the same as the original field with _confirm at the end
+     * If you want to override this, provide the parameter $fieldConfirmName
+     *
+     * @param string $field            The name of the field which need a confirmation
+     * @param string $fieldConfirmName The name of the confirmation field
+     */
+    public function addConfirmField(string $field, string $fieldConfirmName = '')
+    {
+        $this->confirms[$field] = $fieldConfirmName;
     }
     
     /**
@@ -79,16 +98,20 @@ class FormValidator extends Validator
     }
 
     /**
-     * {@inheritdoc}
+     * Check if the required field are provided and not empty
+     *
+     * @param array $value The values to test
+     *
+     * @return array The field which can be skipped on further validation
      */
-    protected function rawCheck($value)
+    private function checkRequired(array $value): array
     {
         $skip = [];
         $notEmptyValidator = new NotEmptyValidator;
 
         foreach ($this->fields as $field => $required) {
             if (!isset($value[$field]) && $required) {
-                $this->errors[$field][] = 'MissingValidator';
+                $this->errors[$field][] = 'RequiredValidator';
                 $skip[$field] = 1;
             } elseif (isset($value[$field])) {
                 if ($notEmptyValidator->check($value[$field])->hasError()) {
@@ -103,6 +126,34 @@ class FormValidator extends Validator
             }
         }
 
+        return $skip;
+    }
+
+    /**
+     * Check if the confirm field are correct
+     *
+     * @param array $value The values to test
+     */
+    private function checkConfirm(array $value)
+    {
+        foreach ($this->confirms as $fieldName => $confirmFieldName) {
+            if (empty($confirmFieldName)) {
+                $confirmFieldName = $fieldName . '_confirm';
+            }
+            if (!isset($value[$confirmFieldName]) || $value[$fieldName] != $value[$confirmFieldName]) {
+                $this->errors[$fieldName][] = 'ConfirmValidator';
+            }
+        }
+    }
+
+    /**
+     * Check if the fields values follow the validators rules
+     *
+     * @param array $skip  The field which can be skipped because they're required but not provided
+     * @param array $value The values to test
+     */
+    private function checkValidators(array $skip, array $value)
+    {
         foreach ($this->rules as $rule) {
             /** @var Validator $validator */
             list($validator, $fields) = $rule;
@@ -130,5 +181,15 @@ class FormValidator extends Validator
                 }
             }
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function rawCheck($value)
+    {
+        $skip = $this->checkRequired($value);
+        $this->checkConfirm($value);
+        $this->checkValidators($skip, $value);
     }
 }
