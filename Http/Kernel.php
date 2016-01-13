@@ -58,15 +58,16 @@ class Kernel
         $this->appDir = rtrim($appDir, '/') . '/';
         $this->publicDir = rtrim($publicDir, '/') . '/';
 
+        // We load the configuration provided
+        $conf = require $this->confDir . 'config.php';
         // We add the services
         $this->addServices(require $this->confDir . 'services.php');
-        /** @var \Lwf\Config\Config $conf */
-        $conf = $this->getService('config');
-        // We load the configuration provided
-        $conf->merge(require $this->confDir . 'config.php');
-        $conf->set('config.directory', $this->confDir);
-        $conf->set('app.directory', $this->appDir);
-        $conf->set('public.directory', $this->publicDir);
+        /** @var \Lwf\Config\Config $config */
+        $config = $this->getService('config');
+        $config->merge($conf);
+        $config->set('config.directory', $this->confDir);
+        $config->set('app.directory', $this->appDir);
+        $config->set('public.directory', $this->publicDir);
         // If error/exception handler are defined, we use them
         if ($this->hasService('handler.error')) {
             $this->setErrorHandler($this->getService('handler.error'));
@@ -75,8 +76,8 @@ class Kernel
             $this->setExceptionHandler($this->getService('handler.exception'));
         }
         // If a timezone is provided, we use it
-        if ($conf->has('timezone')) {
-            date_default_timezone_set($conf->get('timezone'));
+        if ($config->has('timezone')) {
+            date_default_timezone_set($config->get('timezone'));
         }
         // Finally let's add the routes
         /** @var \Lwf\Routing\Router $router */
