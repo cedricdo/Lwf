@@ -29,7 +29,7 @@ class Encryption
     protected $cipher = '';
 
     /**
-     * @var int $mode The mcrypt cipher mode to use
+     * @var string $mode The mcrypt cipher mode to use
      */
     protected $mode = '';
 
@@ -42,10 +42,10 @@ class Encryption
      * Constructor!
      *
      * @param string $cipher The MCRYPT_* cypher to use for this instance
-     * @param int    $mode   The MCRYPT_MODE_* mode to use for this instance
+     * @param string $mode   The MCRYPT_MODE_* mode to use for this instance
      * @param int    $rounds The number of PBKDF2 rounds to do on the key
      */
-    public function __construct(string $cipher, int $mode, int $rounds = 100)
+    public function __construct(string $cipher, string $mode, int $rounds = 100)
     {
         $this->cipher = $cipher;
         $this->mode = $mode;
