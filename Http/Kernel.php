@@ -273,6 +273,9 @@ class Kernel
         try {
             return $this->handleRaw($request);
         } catch (\Throwable $e) {
+            /** @var Logger $logger */
+            $logger = $this->getService('logger');
+            $logger->error('handle request error', ['exception' => $e]);
             if ($e instanceof HttpException) {
                 $code = $e->getHttpCode();
                 $headers = $e->getHeaders();
