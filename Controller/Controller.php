@@ -85,7 +85,7 @@ abstract class Controller
     public function render(string $template) : Response
     {
         $render = $this->get('template.renderer')->render(
-            dirname($this::Dir) . '/Templates/' . $template
+            dirname($this::DIR) . '/Templates/' . $template
         );
         
         return new Response($render);
