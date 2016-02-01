@@ -101,7 +101,7 @@ abstract class Controller
     public function renderRaw(string $template) : string
     {
         $render = $this->get('template.renderer')->render(
-            dirname($this::Dir) . '/Templates/' . $template
+            dirname($this::DIR) . '/Templates/' . $template
         );
         
         return $render;
@@ -127,6 +127,6 @@ abstract class Controller
         }
         
         $renderer->addVar('url', $url);
-        return new Response($renderer->renderRaw($template), $code, ['Location' => $url]);
+        return new Response($renderer->render($template), $code, ['Location' => $url]);
     }
 }
