@@ -233,7 +233,7 @@ class Router
         Request $request, $name, $parameters = array(), int $referenceType = self::ABSOLUTE_PATH
     ): string {
         if (!isset($this->routes[$name])) {
-            throw new RouteNotFoundException('Route non définie "' . $name . '"');
+            throw new RouteNotFoundException(sprintf('Route %s not found', $name));
         }
         
         $route         = $this->routes[$name];
