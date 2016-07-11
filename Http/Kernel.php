@@ -84,12 +84,21 @@ class Kernel
         if ($config->has('timezone')) {
             date_default_timezone_set($config->get('timezone'));
         }
-        // Finally let's add the routes
+    }
+
+    /**
+     * Boot the router
+     *
+     * This method will be called by self::_handleRaw()
+     * If you call this method manually before, you won't be able to use i18n for the routes because we get
+     * the user's preferred language from the request provided to self::_handleRaw()
+     */
+    public function bootRouter() {
         /** @var \Lwf\Routing\Router $router */
         $router = $this->getService('routing.router');
         $router->addRoutes((function (Kernel $kernel, Config $conf) {
             return require $kernel->getConfDir() . 'routes.php';
-        })($this, clone $config));
+        })($this, clone $this->getService('config')));
     }
 
     /**
@@ -329,16 +338,17 @@ class Kernel
     protected function handleRaw(Request $request): Response
     {
         try {
+            $this->addService('http.request', function () use ($request) {
+                return $request;
+            });
+
+            $this->bootRouter();
             /** @var \Lwf\Routing\Router $router */
             $router = $this->getService('routing.router');
             /** @var \Lwf\Security\User $user */
             $user = $this->getService('security.user');
             /** @var \Lwf\Controller\ControllerResolver $resolver */
             $resolver = $this->getService('controller.resolver');
-
-            $this->addService('http.request', function () use ($request) {
-                return $request;
-            });
 
             // Match the route with the request and add the result as request attribute
             $request->addAttributes($router->match($request, $user));
