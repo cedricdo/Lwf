@@ -535,6 +535,44 @@ class Request
     }
 
     /**
+     * Return the user's preferred language
+     *
+     * @param array $availableLanguages A list of the availables translation of the application
+     *
+     * @return string
+     */
+    public function getPreferredLanguage(array $availableLanguages)
+    {
+        $availableLanguages = array_flip($availableLanguages);
+
+        preg_match_all(
+            '~([\w-]+)(?:[^,\d]+([\d.]+))?~',
+            strtolower($this->getServer('HTTP_ACCEPT_LANGUAGE')),
+            $matches,
+            PREG_SET_ORDER
+        );
+
+        foreach($matches as $match) {
+            list($a, $b) = explode('-', $match[1]) + array('', '');
+            $value = isset($match[2]) ? (float) $match[2] : 1.0;
+
+            if(isset($availableLanguages[$match[1]])) {
+                $langs[$match[1]] = $value;
+                continue;
+            }
+
+            if(isset($availableLanguages[$a])) {
+                $langs[$a] = $value - 0.1;
+            }
+
+        }
+        arsort($langs);
+        reset($langs);
+
+        return key($langs);
+    }
+
+    /**
      * Compute the pathinfo
      */
     private function computePathInfo()
