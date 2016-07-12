@@ -26,6 +26,17 @@ abstract class Controller
     {
         $this->kernel = $kernel;
     }
+
+    /**
+     * Return the kernel used by the controller
+     *
+     * @return Kernel
+     *
+     */
+    public function getKernel(): Kernel
+    {
+        return $this->kernel;
+    }
     
     /**
      * Convenience method for getting a service
