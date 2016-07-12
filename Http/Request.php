@@ -573,6 +573,28 @@ class Request
     }
 
     /**
+     * Return the uploaded files within the request
+     *
+     * return UploadedFile[]
+     */
+    public function getUploadFiles(): array
+    {
+        $result = [];
+
+        foreach($_FILES as $key => $file) {
+            $result[$key] = new UploadedFile(
+                $file['name'],
+                $file['type'],
+                $file['tmp_name'],
+                $file['error'],
+                $file['size']
+            );
+        }
+
+        return $result;
+    }
+
+    /**
      * Compute the pathinfo
      */
     private function computePathInfo()
