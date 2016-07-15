@@ -27,7 +27,7 @@ class DateValidator extends Validator
      */
     protected function rawCheck($value)
     {
-        if (!preg_match($this->pattern, $value, $matches) || !checkdate($matches[2], $matches[1], $matches[3]) ) {
+        if (!preg_match($this->pattern, $value, $matches) || !checkdate(intval($matches[2]), intval($matches[1]), intval($matches[3]))) {
             $this->errors[] = 'DateValidator';
         }
     }
