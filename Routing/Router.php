@@ -301,7 +301,7 @@ class Router
                     && (string)$mergedParams[$token[3]] !== (string)$defaults[$token[3]]
                 ) {
                     // check requirement
-                    if (!preg_match('#^'.$token[2].'$#', $mergedParams[$token[3]])) {
+                    if (!preg_match('#^'.$token[2].'$#', strval($mergedParams[$token[3]]))) {
                         throw new InvalidParameterException(
                             sprintf(
                                 'Parameter "%s" for route "%s" must match "%s" ("%s" given) to generate a corresponding URL.',
