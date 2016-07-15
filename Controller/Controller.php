@@ -79,10 +79,10 @@ abstract class Controller
     public function generatePath(string $routeName, array $parameters = []) : string
     {
         return $this->get('routing.router')->generateUrl(
+            $this->get('http.request'),
             $routeName, 
             $parameters, 
-            Router::ABSOLUTE_PATH,
-            $this->get('http.request')
+            Router::ABSOLUTE_PATH
         ); 
     }
     
