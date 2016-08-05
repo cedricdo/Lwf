@@ -91,12 +91,23 @@ class Kernel
     }
 
     /**
+     * Indicates if the maintenance mode is enabled
+     *
+     * @return bool
+     */
+    public function isInMaintenanceMode()
+    {
+        return $this->isInMaintenance;
+    }
+
+    /**
      * Enable the maintenance mode
      */
     public function enableMaintenanceMode()
     {
         if (!$this->isInMaintenance) {
             touch(self::MAINTENANCE_FILE);
+            $this->isInMaintenance = true;
         }
     }
 
@@ -107,6 +118,7 @@ class Kernel
     {
         if ($this->isInMaintenance) {
             unlink(self::MAINTENANCE_FILE);
+            $this->isInMaintenance = false;
         }
     }
 
