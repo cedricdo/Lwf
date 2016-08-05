@@ -26,6 +26,7 @@ class Kernel
     const DIR = __DIR__;
     const DEBUG = true;
     const NO_DEBUG = false;
+    const MAINTENANCE_FILE = 'maintenance.conf';
 
     /** @var mixed[]  */
     private $loadedServices;
@@ -39,6 +40,8 @@ class Kernel
     private $appDir;
     /** @var string */
     private $publicDir;
+    /** @var bool */
+    private $isInMaintenance;
 
     /**
      * Constructor
@@ -54,6 +57,7 @@ class Kernel
         $this->loadedServices = [];
         $this->unloadedServices = [];
         $this->debug = $debug;
+        $this->isInMaintenance = is_file(self::MAINTENANCE_FILE);
 
         $this->confDir = rtrim($confDir, '/') . '/';
         $this->appDir = rtrim($appDir, '/') . '/';
@@ -83,6 +87,26 @@ class Kernel
         // If a timezone is provided, we use it
         if ($config->has('timezone')) {
             date_default_timezone_set($config->get('timezone'));
+        }
+    }
+
+    /**
+     * Enable the maintenance mode
+     */
+    public function enableMaintenanceMode()
+    {
+        if (!$this->isInMaintenance) {
+            touch(self::MAINTENANCE_FILE);
+        }
+    }
+
+    /**
+     * Disabled the maintenance mode
+     */
+    public function disableMaintenanceMode()
+    {
+        if ($this->isInMaintenance) {
+            unlink(self::MAINTENANCE_FILE);
         }
     }
 
@@ -271,16 +295,17 @@ class Kernel
      *
      * This method will try to match a route and to call the matching controller
      *
-     * @param Request $request The HTTP request
+     * @param Request  $request The HTTP request
+     * @param Callable $hook    a callback function which will be used before the controller is called
      *
      * @return Response
      *
      * @throws \Throwable If an exception occurs during the process and the kernel is in debug mode
      */
-    public function handle(Request $request): Response
+    public function handle(Request $request, $hook = null): Response
     {
         try {
-            return $this->handleRaw($request);
+            return $this->handleRaw($request, $hook);
         } catch (\Throwable $e) {
             /** @var Logger $logger */
             $logger = $this->getService('logger');
@@ -327,7 +352,8 @@ class Kernel
     /**
      * Helper for the handle() method
      *
-     * @param Request $request The HTTP request to handle
+     * @param Request  $request The HTTP request to handle
+     * @param Callable $hook    a callback function which will be used before the controller is called
      *
      * @return Response
      *
@@ -335,7 +361,7 @@ class Kernel
      * @throws MethodNotAllowedHttpException If the user can not access the resource with the supplied HTTP method
      * @throws NotFoundHttpException If the resource is not found
      */
-    protected function handleRaw(Request $request): Response
+    protected function handleRaw(Request $request, $hook): Response
     {
         try {
             $this->addService('http.request', function () use ($request) {
@@ -366,6 +392,9 @@ class Kernel
                 $renderer->setController($controller[0]);
                 $renderer->addFunctions(require $this->confDir . 'templateFunctions.php');
                 $renderer->addVars(require $this->confDir . 'templateVars.php');
+            }
+            if (is_callable($hook)) {
+                call_user_func($hook);
             }
             $response = call_user_func_array($controller, $parameters);
 
