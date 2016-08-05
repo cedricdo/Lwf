@@ -406,9 +406,13 @@ class Kernel
                 $renderer->addVars(require $this->confDir . 'templateVars.php');
             }
             if (is_callable($hook)) {
-                call_user_func($hook, $this);
+                $result = call_user_func($hook);
             }
-            $response = call_user_func_array($controller, $parameters);
+            if (isset($result) && $result instanceof Response) {
+                $response = $result;
+            } else {
+                $response = call_user_func_array($controller, $parameters);
+            }
 
             return $response;
         } catch (MethodNotAllowedException $e) {
