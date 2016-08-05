@@ -395,6 +395,12 @@ class Kernel
             $controller = $resolver->getController($request, $this->appDir);
             $parameters = $resolver->getParameters($request, $controller);
 
+            if (is_callable($hook)) {
+                $result = call_user_func($hook);
+            }
+            if (!empty($result)) {
+                $controller = $result;
+            }
             // If the controller is a Controller object, let's load some stuff
             if (is_array($controller) && $controller[0] instanceof Controller ) {
                 /** @var \Lwf\Template\Renderer $renderer */
@@ -405,14 +411,8 @@ class Kernel
                 $renderer->addFunctions(require $this->confDir . 'templateFunctions.php');
                 $renderer->addVars(require $this->confDir . 'templateVars.php');
             }
-            if (is_callable($hook)) {
-                $result = call_user_func($hook);
-            }
-            if (isset($result) && $result instanceof Response) {
-                $response = $result;
-            } else {
-                $response = call_user_func_array($controller, $parameters);
-            }
+
+            $response = call_user_func_array($controller, $parameters);
 
             return $response;
         } catch (MethodNotAllowedException $e) {
