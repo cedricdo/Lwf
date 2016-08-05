@@ -406,7 +406,7 @@ class Kernel
                 $renderer->addVars(require $this->confDir . 'templateVars.php');
             }
             if (is_callable($hook)) {
-                call_user_func($hook);
+                call_user_func($hook, $this);
             }
             $response = call_user_func_array($controller, $parameters);
 
