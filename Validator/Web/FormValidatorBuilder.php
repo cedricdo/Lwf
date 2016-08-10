@@ -99,7 +99,7 @@ class FormValidatorBuilder
                         $return[] = $classInfo;
                     } else {
                         $param = explode(':', $classInfo);
-                        $className = self::VALIDATOR_NAMESPACE . $param[0] . 'validator';
+                        $className = self::VALIDATOR_NAMESPACE . $param[0] . 'Validator';
                         if (isset($param[1])) {
                             try {
                                 $contructor = (new \ReflectionClass($className))->getConstructor();
