@@ -131,10 +131,10 @@ abstract class Controller
         $kernel = $this->kernel;
         /** @var \Lwf\Template\Renderer $renderer */
         $renderer = $this->get('template.renderer');
-        if (is_file(trim($kernel->getAppDir(), '/') . '/Templates/Http/' . $code . '.php')) {
-            $template = trim($kernel->getAppDir(), '/') . '/Templates/Http/' . $code . '.php';
+        if (is_file(rtrim($kernel->getAppDir(), '/') . '/Templates/Http/' . $code . '.php')) {
+            $template = rtrim($kernel->getAppDir(), '/') . '/Templates/Http/' . $code . '.php';
         } else {
-            $template = trim($kernel::DIR, '/') . '/Templates/' . $code . '.php';
+            $template = rtrim($kernel::DIR, '/') . '/Templates/' . $code . '.php';
         }
         
         $renderer->addVar('url', $url);
