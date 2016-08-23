@@ -290,12 +290,12 @@ class Response
         ) {
             $this->addHeader(
                 'Content-Type',
-                $this->headers['Content-Type'] . '; charset=' . $charset
+                $this->headers['Content-Type'] . '; charset=' . $this->charset
             );
         }
 
         foreach ($this->headers as $name => $value) {
-            header($name . ': ' . $value, false);
+            header($name . ': ' . $value, true);
         }
 
         foreach ($this->cookies as $cookie) {
