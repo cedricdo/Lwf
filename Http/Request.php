@@ -544,7 +544,7 @@ class Request
     public function getPreferredLanguage(array $availableLanguages)
     {
         $availableLanguages = array_flip($availableLanguages);
-
+        $langs = [];
         preg_match_all(
             '~([\w-]+)(?:[^,\d]+([\d.]+))?~',
             strtolower($this->getServer('HTTP_ACCEPT_LANGUAGE')),
@@ -566,10 +566,14 @@ class Request
             }
 
         }
-        arsort($langs);
-        reset($langs);
+        if (0 === count($langs)) {
+            return '';
+        } else {
+            arsort($langs);
+            reset($langs);
 
-        return key($langs);
+            return key($langs);
+        }
     }
 
     /**
